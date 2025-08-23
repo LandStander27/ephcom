@@ -1,0 +1,10 @@
+[package]
+name = "ephcom"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+ephcom-common.workspace = true
+
+[lints.clippy]
+needless_return = "allow"

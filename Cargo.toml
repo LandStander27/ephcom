@@ -1,0 +1,8 @@
+[workspace]
+resolver = "3"
+members = ["client", "common", "server"]
+
+[workspace.dependencies]
+anyhow = "1.0.99"
+ephcom-common = { path = "common" }
+version = { path = "version" }
