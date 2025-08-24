@@ -19,6 +19,7 @@ type Sink = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 type Stream = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
 pub struct Client {
+	#[allow(unused)]
 	is_host: bool,
 	uri: String,
 	base_uri: String,
@@ -64,18 +65,18 @@ impl Client {
 		return Ok(());
 	}
 
-	pub async fn start(&mut self) -> anyhow::Result<()> {
+	pub async fn start(&mut self, password: impl Into<String> + Clone) -> anyhow::Result<()> {
 		if self.stream.is_none() || self.sink.is_none() {
 			return Err(anyhow!("connection not open"));
 		}
 
 		let exiting = Arc::new(Notify::new());
 		let (t, stdout) = self
-			.send_messages(exiting.clone())
+			.send_messages(exiting.clone(), password.clone().into().into())
 			.await
 			.context("could not send")?;
 		let t2 = self
-			.listen_incoming(stdout, exiting.clone())
+			.listen_incoming(stdout, exiting.clone(), password.into().into())
 			.await
 			.context("could not listen")?;
 
@@ -85,11 +86,13 @@ impl Client {
 		return Ok(());
 	}
 
-	async fn send_messages(&self, exiting: Arc<Notify>) -> anyhow::Result<(tokio::task::JoinHandle<anyhow::Result<()>>, SharedWriter)> {
+	async fn send_messages(&self, exiting: Arc<Notify>, password: age::secrecy::SecretString) -> anyhow::Result<(tokio::task::JoinHandle<anyhow::Result<()>>, SharedWriter)> {
 		let sink = self.sink.as_ref().unwrap().clone();
 		let (mut rl, stdout) = Readline::new("> ".to_string())?;
 		let mut thread_stdout = stdout.clone();
 		let t = tokio::spawn(async move {
+			let recipient = age::scrypt::Recipient::new(password);
+
 			loop {
 				let msg = tokio::select! {
 					biased;
@@ -100,9 +103,11 @@ impl Client {
 					ReadlineEvent::Line(s) => {
 						let s = s.trim();
 						rl.add_history_entry(s.to_string());
+
+						let enc = age::encrypt(&recipient, s.as_bytes()).context("could not ecnrypt text")?;
 						sink.lock()
 							.await
-							.send(Message::text(Response::encode(&Response::Message(ephcom_common::Message { text: s.to_string() }))?))
+							.send(Message::text(Response::encode(&Response::Message(ephcom_common::Message { text: enc }))?))
 							.await
 							.context("could not send message over sink")?;
 					}
@@ -126,10 +131,16 @@ impl Client {
 		return Ok((t, stdout));
 	}
 
-	async fn listen_incoming(&self, mut stdout: SharedWriter, exiting: Arc<Notify>) -> anyhow::Result<tokio::task::JoinHandle<anyhow::Result<()>>> {
+	async fn listen_incoming(
+		&self,
+		mut stdout: SharedWriter,
+		exiting: Arc<Notify>,
+		password: age::secrecy::SecretString,
+	) -> anyhow::Result<tokio::task::JoinHandle<anyhow::Result<()>>> {
 		let stream = self.stream.as_ref().unwrap().clone();
 		let uri = self.base_uri.clone();
 		let t = tokio::spawn(async move {
+			let identity = age::scrypt::Identity::new(password);
 			loop {
 				let mut stream = stream.lock().await;
 				let msg = tokio::select! {
@@ -144,7 +155,8 @@ impl Client {
 						let msg = Response::decode(json).context("could not decode json into message")?;
 						match msg {
 							Response::Message(msg) => {
-								writeln!(stdout, "other: {}", msg.text.trim())?;
+								let dec = String::from_utf8(age::decrypt(&identity, &msg.text).context("could not decrypt text")?).context("invalid utf8")?;
+								writeln!(stdout, "other: {}", dec.trim())?;
 							}
 							Response::CreatedRoom(recv) => {
 								writeln!(stdout, "system: Room created! Share this URL to have someone join you! {}/chat/{}", uri, recv.id)?;

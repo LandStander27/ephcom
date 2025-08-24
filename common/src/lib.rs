@@ -63,7 +63,7 @@ pub struct PasswordCorrect;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Message {
-	pub text: String,
+	pub text: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

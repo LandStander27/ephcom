@@ -39,7 +39,7 @@ struct JoinCommand {
 
 mod client;
 
-async fn prompt_password() -> anyhow::Result<String> {
+async fn prompt_password() -> anyhow::Result<(String, String)> {
 	print!("Password ? ");
 	std::io::stdout()
 		.flush()
@@ -51,7 +51,7 @@ async fn prompt_password() -> anyhow::Result<String> {
 		.context("could not read from stdin")?;
 	let hash = Sha256::digest(buffer.trim());
 	let hash_string = hex::encode(hash);
-	return Ok(hash_string);
+	return Ok((buffer.trim().to_string(), hash_string));
 }
 
 #[tokio::main]
@@ -76,21 +76,21 @@ async fn main() -> anyhow::Result<()> {
 	match args.command {
 		Commands::Create(create) => {
 			let mut client = client::Client::new(format!("{}/create", create.url), create.url, true);
-			let hash = prompt_password().await?;
+			let (pass, hash) = prompt_password().await?;
 			client.connect().await?;
 
 			let request = Response::CreateRequest(CreateRequest { pass_hash: hash });
 			client.send(request).await?;
-			client.start().await?;
+			client.start(pass).await?;
 		}
 		Commands::Join(join) => {
 			let mut client = client::Client::new(join.url, "", false);
-			let hash = prompt_password().await?;
+			let (pass, hash) = prompt_password().await?;
 			client.connect().await?;
 
 			let request = Response::JoinRequest(JoinRequest { pass_hash: hash });
 			client.send(request).await?;
-			client.start().await?;
+			client.start(pass).await?;
 		}
 	}
 
