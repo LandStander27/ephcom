@@ -34,13 +34,13 @@ pub async fn handle(
 			let incoming_json = match msg {
 				actix_ws::Message::Text(str) => str.to_string(),
 				actix_ws::Message::Close(_) => {
-					info!("websocket closed");
 					let mut rooms = rooms.lock().await;
 					if let Some(room) = rooms.get_mut(&id) {
 						let tx = if is_host {
-							room.guest.take()
+							room.guest.as_ref()
 						} else {
-							Some(room.host.clone())
+							room.guest = None;
+							Some(&room.host)
 						};
 						if let Some(tx) = tx {
 							tx.unbounded_send(if is_host {
@@ -98,11 +98,11 @@ pub async fn handle(
 	let from_other = async {
 		let mut stream = rx.map(|msg| {
 			let json = Response::encode(&msg)?;
-			return Ok::<String, String>(json);
+			return Ok::<(Response, String), ephcom_common::JsonError>((msg, json));
 		});
 
 		while let Some(msg) = stream.next().await {
-			let msg = match msg.map_err(|e| anyhow!("json error: {e}")) {
+			let (msg, s) = match msg {
 				Ok(o) => o,
 				Err(e) => {
 					send_error(&mut session, e).await;
@@ -110,9 +110,13 @@ pub async fn handle(
 				}
 			};
 			session
-				.text(msg)
+				.text(s)
 				.await
 				.context("could not send message over ws")?;
+			if matches!(msg, Response::DeletedRoom(_)) {
+				session.close(None).await?;
+				break;
+			}
 		}
 
 		return Ok(());

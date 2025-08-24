@@ -4,5 +4,10 @@ members = ["client", "common", "server"]
 
 [workspace.dependencies]
 anyhow = "1.0.99"
+tokio = { version = "1.47.1", features = [ "macros", "rt-multi-thread", "net", "io-std" ]}
+futures-util = "0.3.31"
+clap = { version = "4.5.43", features = ["derive"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = [ "env-filter" ]}
 ephcom-common = { path = "common" }
 version = { path = "version" }

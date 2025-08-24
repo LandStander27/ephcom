@@ -1,1 +1,1 @@
-pub use crate::{CreatedRoom, DeletedRoom, Error as ErrorResponse, JoinRequest, JoinedRoom, Json, LeftRoom, Message, PasswordCorrect, PasswordWrong, Response};
+pub use crate::{CreateRequest, CreatedRoom, DeletedRoom, Error as ErrorResponse, JoinRequest, JoinedRoom, Json, LeftRoom, Message, PasswordCorrect, PasswordWrong, Response};

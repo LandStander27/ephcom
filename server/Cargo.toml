@@ -7,16 +7,16 @@ edition = "2024"
 anyhow.workspace = true
 ephcom-common.workspace = true
 version.workspace = true
+tokio.workspace = true
+futures-util.workspace = true
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 actix-ws = "0.3.0"
 actix-web = "4.10.2"
-tokio = { version = "1.47.1", features = [ "macros", "rt-multi-thread" ]}
 futures-channel = "0.3.31"
-futures-util = "0.3.31"
 rand = "0.9.2"
-tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = [ "env-filter" ]}
-clap = { version = "4.5.43", features = ["derive"] }
 
 [lints.clippy]
 needless_return = "allow"

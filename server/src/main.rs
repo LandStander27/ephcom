@@ -1,4 +1,5 @@
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, middleware::Logger, web};
+use anyhow::Context;
 use clap::Parser;
 use ephcom_common::prelude::*;
 use futures_channel::mpsc::{self, UnboundedSender};
@@ -77,8 +78,16 @@ async fn chat_create(req: HttpRequest, stream: web::Payload, data: web::Data<Dat
 			error!("{e}");
 		}
 
-		if let Err(e) = websocket::handle(data.rooms.clone(), id, rx, session, stream, true).await {
+		if let Err(e) = websocket::handle(data.rooms.clone(), id, rx, session.clone(), stream, true).await {
 			error!("host error: {e}");
+		}
+
+		if let Err(e) = session
+			.close(None)
+			.await
+			.context("could not send close msg")
+		{
+			error!("{e}");
 		}
 	});
 	return Ok(res);
@@ -135,8 +144,16 @@ async fn chat_connect(req: HttpRequest, stream: web::Payload, data: web::Data<Da
 			}
 		}
 
-		if let Err(e) = websocket::handle(data.rooms.clone(), id, rx, session, stream, false).await {
+		if let Err(e) = websocket::handle(data.rooms.clone(), id, rx, session.clone(), stream, false).await {
 			error!("guest error: {e}");
+		}
+
+		if let Err(e) = session
+			.close(None)
+			.await
+			.context("could not send close msg")
+		{
+			error!("{e}");
 		}
 	});
 	return Ok(res);
