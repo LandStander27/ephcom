@@ -19,10 +19,10 @@ jobs:
       image: archlinux:latest
     steps:
       - name: Install deps
-        run: pacman --noconfirm --needed -Sy git nodejs rust sed libgit2
+        run: pacman --noconfirm --needed -Sy git nodejs rustup sed libgit2 mingw-w64-gcc
 
-      - name: Install Windows rust target
-        run: rustup target add x86_64-pc-windows-gnu
+      - name: Install rust targets
+        run: rustup toolchain install stable && rustup default stable && rustup target add x86_64-pc-windows-gnu
 
       - uses: actions/checkout@v4
       - name: Build ephcom client
