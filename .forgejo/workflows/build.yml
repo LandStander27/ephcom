@@ -26,13 +26,13 @@ jobs:
 
       - uses: actions/checkout@v4
       - name: Build ephcom client
-        run: cargo b --locked --release --package ephcom
+        run: cargo b --locked --release --package ephcom --all-features
 
       - name: Build ephcom client for Windows
-        run: cargo b --locked --release --package ephcom --target x86_64-pc-windows-gnu
+        run: cargo b --locked --release --package ephcom --target x86_64-pc-windows-gnu --all-features
 
       - name: Build ephcom server
-        run: cargo b --locked --release --package ephcom-server
+        run: cargo b --locked --release --package ephcom-server --all-features
 
       # - name: Run tests
       #   run: cargo test --all-features
