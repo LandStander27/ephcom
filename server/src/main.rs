@@ -186,7 +186,7 @@ async fn main() -> anyhow::Result<()> {
 			.route("/chat/{id}", web::get().to(chat_connect))
 			.route("/create", web::get().to(chat_create))
 	})
-	.bind("127.0.0.1:8080")?
+	.bind("0.0.0.0:8080")?
 	.run()
 	.await?;
 
