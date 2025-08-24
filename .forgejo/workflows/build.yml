@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "**"
+      - "!README.md"
+      - "!.gitignore"
+      - "!LICENSE"
+      - "!Dockerfile"
+      - "!.forgejo/workflows/build_image.yaml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: docker
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install deps
+        run: pacman --noconfirm --needed -Sy git nodejs rust sed libgit2
+
+      - name: Install Windows rust target
+        run: rustup target add x86_64-pc-windows-gnu
+
+      - uses: actions/checkout@v4
+      - name: Build ephcom client
+        run: cargo b --locked --release --package ephcom
+
+      - name: Build ephcom client for Windows
+        run: cargo b --locked --release --package ephcom --target x86_64-pc-windows-gnu
+
+      - name: Build ephcom server
+        run: cargo b --locked --release --package ephcom-server
+
+      # - name: Run tests
+      #   run: cargo test --all-features
+
+      - name: Upload ephcom client
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: client
+          path: target/release/ephcom
+
+      - name: Upload ephcom windows client
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: windows-client
+          path: target/x86_64-pc-windows-gnu/release/ephcom
+
+      - name: Upload ephcom server
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: server
+          path: target/release/ephcom-server
