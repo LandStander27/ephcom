@@ -52,7 +52,12 @@ impl Client {
 	}
 
 	pub async fn connect(&mut self) -> anyhow::Result<()> {
+		#[cfg(feature = "tls")]
+		let uri = Uri::from_str(&format!("wss://{}", self.uri))?;
+
+		#[cfg(not(feature = "tls"))]
 		let uri = Uri::from_str(&format!("ws://{}", self.uri))?;
+
 		let (client, _) = ClientBuilder::from_uri(uri)
 			.connect()
 			.await
