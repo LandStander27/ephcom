@@ -19,7 +19,7 @@ jobs:
       image: archlinux:latest
     steps:
       - name: Install deps
-        run: pacman --noconfirm --needed -Sy git nodejs rustup sed libgit2 mingw-w64-gcc
+        run: pacman --noconfirm --needed -Sy git nodejs rustup sed libgit2 mingw-w64-gcc base-devel
 
       - name: Install rust targets
         run: rustup toolchain install stable && rustup default stable && rustup target add x86_64-pc-windows-gnu
