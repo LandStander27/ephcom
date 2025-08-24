@@ -47,7 +47,7 @@ jobs:
         uses: https://code.forgejo.org/forgejo/upload-artifact@v4
         with:
           name: windows-client
-          path: target/x86_64-pc-windows-gnu/release/ephcom
+          path: target/x86_64-pc-windows-gnu/release/ephcom.exe
 
       - name: Upload ephcom server
         uses: https://code.forgejo.org/forgejo/upload-artifact@v4
