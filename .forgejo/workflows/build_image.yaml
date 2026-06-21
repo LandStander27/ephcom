@@ -10,11 +10,9 @@ jobs:
     name: "Build"
     runs-on: codeberg-small
     steps:
-      - name: Install deps
-        run: apt-get update && apt-get install buildah ca-certificates -y
-
-      - name: Build and push
-        uses: https://codeberg.org/actions/buildah-simple@main
+      - run: apt-get update && apt-get install buildah ca-certificates -y
+      - uses: actions/checkout@v4
+      - uses: https://codeberg.org/actions/buildah-simple@main
         with:
           tag: "docker.io/library/landsj/ephcom:latest"
           context: .
