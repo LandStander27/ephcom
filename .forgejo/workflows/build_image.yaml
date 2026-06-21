@@ -8,13 +8,13 @@ on:
 jobs:
   build_publish:
     name: "Build"
-    runs-on: codeberg-small
+    runs-on: codeberg-medium
     steps:
       - run: apt-get update && apt-get install buildah ca-certificates -y
       - uses: actions/checkout@v4
       - uses: https://codeberg.org/actions/buildah-simple@main
         with:
-          tag: "docker.io/library/landsj/ephcom:latest"
+          tag: "docker.io/landsj/ephcom:latest"
           context: .
           push: true
           username: "landsj"
