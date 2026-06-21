@@ -8,37 +8,17 @@ on:
 jobs:
   build_publish:
     name: "Build"
-    runs-on: docker
-    container:
-      image: archlinux:latest
+    runs-on: codeberg-small
     steps:
       - name: Install deps
-        run: pacman --noconfirm -Sy git nodejs curl docker docker-buildx
+        run: apt-get update && apt-get install buildah ca-certificates -y
 
-      - name: Wait for Docker daemon
-        run: |
-          for i in {1..30}; do
-            if docker info > /dev/null 2>&1; then
-              echo "Docker is ready!"
-              break
-            fi
-            echo "Waiting for Docker to be ready..."
-            sleep 1
-          done
-
-      - name: Check Docker service logs
-        run: curl -s docker:2375/version || echo "dockerd might have failed"
-
-      - name: Docker check
-        run: docker info
-
-      - uses: actions/checkout@v4
-
-      - name: Login to the registry
-        run: docker login -u landsj -p ${{ secrets.DOCKERHUB }}
-
-      - name: Build
-        run: docker build -t landsj/ephcom .
-
-      - name: Push
-        run: docker push landsj/ephcom
+      - name: Build and push
+        uses: https://codeberg.org/actions/buildah-simple@main
+        with:
+          tag: "docker.io/library/landsj/ephcom:latest"
+          context: .
+          push: true
+          username: "landsj"
+          password: ${{ secrets.DOCKERHUB }}
+          registry: "docker.io"
