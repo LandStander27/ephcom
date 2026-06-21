@@ -8,7 +8,9 @@ on:
 jobs:
   build_publish:
     name: "Build"
-    runs-on: codeberg-medium
+    runs-on: docker
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - run: apt-get update && apt-get install buildah ca-certificates -y
       - uses: actions/checkout@v4
