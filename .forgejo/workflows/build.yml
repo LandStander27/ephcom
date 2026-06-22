@@ -1,15 +1,15 @@
 name: Build
 
 on:
-  push:
-    branches: [ "master" ]
-    paths:
-      - "**"
-      - "!README.md"
-      - "!.gitignore"
-      - "!LICENSE"
-      - "!Dockerfile"
-      - "!.forgejo/workflows/build_image.yaml"
+  # push:
+  #   branches: [ "master" ]
+  #   paths:
+  #     - "**"
+  #     - "!README.md"
+  #     - "!.gitignore"
+  #     - "!LICENSE"
+  #     - "!Dockerfile"
+  #     - "!.forgejo/workflows/build_image.yaml"
   workflow_dispatch:
 
 jobs:
